@@ -1,0 +1,954 @@
+<!DOCTYPE html><html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GitDoc — Stage 2</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --border: #e2e8f0;
+      --soft: #eff6ff;
+      --soft-border: #bfdbfe;
+      --good: #f0fdf4;
+      --good-border: #bbf7d0;
+      --error: #fef2f2;
+      --error-text: #991b1b;
+      --warn: #fffbeb;
+      --warn-border: #fcd34d;
+      --shadow: 0 4px 8px rgba(15, 23, 42, 0.06);
+    }* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  padding: 16px;
+}
+
+.container { max-width: 1180px; margin: 0 auto; }
+
+header { text-align: center; margin: 24px 0 20px; }
+header h1 { margin: 0 0 8px; font-size: clamp(2rem, 4vw, 3rem); }
+header p { margin: 0; color: var(--muted); }
+
+form { display: flex; gap: 10px; }
+input[type="url"] {
+  flex: 1;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  font-size: 1rem;
+  outline: none;
+  background: #fff;
+}
+input[type="url"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+
+button {
+  border: none;
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+  font-size: 1rem;
+}
+.btn-primary, #submit-btn { background: var(--primary); color: #fff; }
+.btn-primary:hover, #submit-btn:hover { background: var(--primary-hover); }
+.btn-secondary { background: #e2e8f0; color: #0f172a; }
+.btn-secondary:hover { background: #cbd5e1; }
+
+.search-section { margin-bottom: 18px; }
+.bar { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; margin-bottom: 16px; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+  margin-bottom: 18px;
+}
+.card h2 {
+  margin: 0 0 12px;
+  font-size: 1.2rem;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+@media (max-width: 920px) { .grid { grid-template-columns: 1fr; } form { flex-direction: column; } }
+
+.text-block { white-space: pre-wrap; }
+.muted { color: var(--muted); }
+pre {
+  margin: 0;
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 14px;
+  border-radius: 12px;
+  overflow-x: auto;
+  max-height: 380px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+pre code { background: none; padding: 0; color: inherit; }
+code {
+  background: #e2e8f0;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.92em;
+}
+
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { background: #f8fafc; }
+
+.hidden { display: none !important; }
+.loader { text-align: center; padding: 28px 12px; }
+.spinner {
+  width: 38px; height: 38px; border-radius: 50%;
+  border: 4px solid rgba(0,0,0,.08); border-left-color: var(--primary);
+  margin: 0 auto 12px; animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error, .info, .warn {
+  padding: 14px 16px;
+  border-radius: 12px;
+  margin-bottom: 18px;
+  font-weight: 600;
+}
+.error { background: var(--error); color: var(--error-text); border: 1px solid #fca5a5; }
+.info { background: var(--soft); color: #1d4ed8; border: 1px solid var(--soft-border); }
+.warn { background: var(--warn); color: #92400e; border: 1px solid var(--warn-border); }
+
+.pill-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-size: .9rem;
+  color: #334155;
+}
+.pill.good { background: var(--good); border-color: var(--good-border); }
+.pill.soft { background: var(--soft); border-color: var(--soft-border); }
+
+.summary-box {
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+footer { text-align: center; margin: 32px 0 8px; color: var(--muted); font-size: .88rem; }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>GitDoc — Stage 2</h1>
+      <p>Читает не только названия файлов, но и содержимое ключевых конфигов.</p>
+    </header><main>
+  <section class="search-section">
+    <form id="doc-form">
+      <input type="url" id="repo-url" placeholder="https://github.com/user/repository" required />
+      <button id="submit-btn" type="submit">Анализировать</button>
+    </form>
+  </section>
+
+  <div id="loader" class="loader hidden">
+    <div class="spinner"></div>
+    <p>Сканируем репозиторий, читаем конфиги и строим архитектуру...</p>
+  </div>
+
+  <div id="error-message" class="error hidden"></div>
+  <div id="info-message" class="info hidden"></div>
+  <div id="warn-message" class="warn hidden"></div>
+
+  <section id="results-section" class="hidden">
+    <div class="bar">
+      <button id="btn-copy" class="btn-secondary" type="button">📋 Скопировать README</button>
+      <button id="btn-download" class="btn-primary" type="button">💾 Скачать README.md</button>
+    </div>
+
+    <div class="card summary-box">
+      <h2>Коротко о проекте</h2>
+      <div id="summary" class="text-block"></div>
+      <div id="tech-pills" class="pill-row" style="margin-top: 12px;"></div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Структура проекта</h2>
+        <pre><code id="structure"></code></pre>
+      </div>
+
+      <div class="card">
+        <h2>Архитектура</h2>
+        <div id="architecture" class="text-block"></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Ключевые файлы и смысл</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Файл</th>
+              <th>Что это значит</th>
+            </tr>
+          </thead>
+          <tbody id="files-table"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>Что найдено в конфигурации</h2>
+        <div id="config-findings" class="text-block"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>README.md</h2>
+      <pre><code id="readme-preview"></code></pre>
+    </div>
+
+    <div class="card">
+      <h2>Onboarding для новичка</h2>
+      <div id="onboarding" class="text-block"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>Stage 2 — бесплатный клиентский анализ без серверов и ключей.</p>
+</footer>
+
+  </div>  <script>
+    const GH_API = 'https://api.github.com';
+
+    function setText(id, text) {
+      document.getElementById(id).textContent = text;
+    }
+
+    function setHtml(id, html) {
+      document.getElementById(id).innerHTML = html;
+    }
+
+    function show(id, display = 'block') {
+      const el = document.getElementById(id);
+      el.classList.remove('hidden');
+      el.style.display = display;
+    }
+
+    function hide(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function clearMessages() {
+      ['error-message', 'info-message', 'warn-message'].forEach(hide);
+      setText('error-message', '');
+      setText('info-message', '');
+      setText('warn-message', '');
+    }
+
+    function showError(message) {
+      setText('error-message', message);
+      show('error-message');
+    }
+
+    function showInfo(message) {
+      setText('info-message', message);
+      show('info-message');
+    }
+
+    function showWarn(message) {
+      setText('warn-message', message);
+      show('warn-message');
+    }
+
+    function parseGitHubRepoUrl(inputUrl) {
+      let url;
+      try {
+        url = new URL(inputUrl.trim().replace(/\/+$/, ''));
+      } catch {
+        throw new Error('Введите корректную ссылку на GitHub репозиторий.');
+      }
+
+      if (!/(^|\.)github\.com$/i.test(url.hostname)) {
+        throw new Error('Поддерживаются только ссылки на github.com.');
+      }
+
+      const parts = url.pathname.split('/').filter(Boolean);
+      if (parts.length < 2) {
+        throw new Error('Ссылка должна быть вида https://github.com/owner/repo');
+      }
+
+      const owner = parts[0];
+      const repo = parts[1].replace(/\.git$/i, '');
+      return { owner, repo, cleanUrl: `https://github.com/${owner}/${repo}` };
+    }
+
+    async function ghJson(path, extraHeaders = {}) {
+      const res = await fetch(`${GH_API}${path}`, {
+        headers: {
+          'Accept': 'application/vnd.github+json',
+          ...extraHeaders
+        }
+      });
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        const message = text || res.statusText || `HTTP ${res.status}`;
+        const err = new Error(`GitHub API error ${res.status}: ${message}`);
+        err.status = res.status;
+        throw err;
+      }
+
+      return res.json();
+    }
+
+    async function ghText(path) {
+      const res = await fetch(`${GH_API}${path}`, {
+        headers: {
+          'Accept': 'application/vnd.github.raw'
+        }
+      });
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        const message = text || res.statusText || `HTTP ${res.status}`;
+        const err = new Error(`GitHub file error ${res.status}: ${message}`);
+        err.status = res.status;
+        throw err;
+      }
+
+      return res.text();
+    }
+
+    function decodeBase64Content(content) {
+      if (!content) return '';
+      try {
+        return decodeURIComponent(escape(atob(content.replace(/\n/g, ''))));
+      } catch {
+        try {
+          return atob(content.replace(/\n/g, ''));
+        } catch {
+          return '';
+        }
+      }
+    }
+
+    function normalizePath(path) {
+      return String(path || '').replace(/^\.?\//, '');
+    }
+
+    function extOf(path) {
+      const name = normalizePath(path).split('/').pop().toLowerCase();
+      const idx = name.lastIndexOf('.');
+      return idx >= 0 ? name.slice(idx) : '';
+    }
+
+    function baseOf(path) {
+      return normalizePath(path).split('/').pop().toLowerCase();
+    }
+
+    function detectTech(stackHints) {
+      const tech = [];
+      const add = (item) => { if (!tech.includes(item)) tech.push(item); };
+
+      const deps = stackHints.packageJson?.dependencies || {};
+      const devDeps = stackHints.packageJson?.devDependencies || {};
+      const allDeps = { ...deps, ...devDeps };
+      const keys = Object.keys(allDeps).map(k => k.toLowerCase());
+
+      const has = (name) => keys.some(k => k === name || k.startsWith(`${name}/`) || k.includes(name));
+
+      if (stackHints.hasWrangler || stackHints.filePaths.some(p => p.toLowerCase() === 'wrangler.toml')) add('Cloudflare Workers');
+      if (stackHints.hasSupabase || has('@supabase/supabase-js') || keys.some(k => k.includes('supabase'))) add('Supabase');
+      if (stackHints.hasTon || keys.some(k => k.includes('ton'))) add('TON');
+      if (stackHints.hasReact || has('react')) add('React');
+      if (stackHints.hasNext || has('next')) add('Next.js');
+      if (stackHints.hasVue || has('vue')) add('Vue');
+      if (stackHints.hasExpress || has('express')) add('Express');
+      if (stackHints.hasVite || stackHints.filePaths.some(p => p.toLowerCase() === 'vite.config.js' || p.toLowerCase() === 'vite.config.ts')) add('Vite');
+      if (stackHints.hasNode || stackHints.filePaths.some(p => p.toLowerCase() === 'package.json')) add('Node.js');
+      if (stackHints.hasPython || stackHints.filePaths.some(p => p.toLowerCase() === 'requirements.txt')) add('Python');
+      if (stackHints.hasDatabase || stackHints.filePaths.some(p => p.toLowerCase().includes('schema.sql'))) add('Database / SQL');
+
+      return tech.length ? tech : ['Unknown stack'];
+    }
+
+    function detectSignals(files) {
+      const filePaths = files.map(f => normalizePath(f.path));
+      const lowerPaths = filePaths.map(p => p.toLowerCase());
+
+      return {
+        filePaths,
+        hasPackageJson: lowerPaths.includes('package.json'),
+        hasReadme: lowerPaths.includes('readme.md') || lowerPaths.includes('readme.txt'),
+        hasWrangler: lowerPaths.includes('wrangler.toml'),
+        hasSchema: lowerPaths.some(p => p.endsWith('schema.sql')),
+        hasSupabase: lowerPaths.some(p => p.includes('supabase')),
+        hasTon: lowerPaths.some(p => p.includes('ton.js') || p.includes('ton.ts') || p.includes('ton.')),
+        hasReact: lowerPaths.some(p => p.endsWith('.jsx') || p.endsWith('.tsx') || p.includes('react')),
+        hasNext: lowerPaths.some(p => p.includes('next.config') || p.includes('/pages/') || p.includes('/app/')),
+        hasVue: lowerPaths.some(p => p.endsWith('.vue')),
+        hasExpress: lowerPaths.some(p => p.includes('express')),
+        hasVite: lowerPaths.some(p => p.includes('vite.config.js') || p.includes('vite.config.ts')),
+        hasNode: lowerPaths.some(p => p === 'package.json'),
+        hasPython: lowerPaths.some(p => p === 'requirements.txt' || p.endsWith('.py')),
+        hasDatabase: lowerPaths.some(p => p.endsWith('.sql') || p.includes('database') || p.includes('schema'))
+      };
+    }
+
+    function detectProjectType(signals) {
+      if (signals.hasWrangler) return 'Cloudflare Workers / Serverless Web App';
+      if (signals.hasReact && signals.hasVite) return 'React + Vite Web App';
+      if (signals.hasNext) return 'Next.js App';
+      if (signals.hasReact) return 'React Web App';
+      if (signals.hasExpress) return 'Node.js API / Backend';
+      if (signals.hasPython) return 'Python Project';
+      return 'Generic project';
+    }
+
+    function detectRuntimeHints(signals) {
+      const hints = [];
+      if (signals.hasWrangler) hints.push('serverless deployment via Cloudflare Workers');
+      if (signals.hasSchema) hints.push('database schema in SQL');
+      if (signals.hasSupabase) hints.push('Supabase for auth/data/storage');
+      if (signals.hasTon) hints.push('TON integration for payments or blockchain features');
+      if (signals.hasReadme) hints.push('project already has README documentation');
+      if (signals.hasPackageJson) hints.push('Node.js dependencies and scripts');
+      return hints;
+    }
+
+    function filePurpose(path) {
+      const file = baseOf(path);
+      const ext = extOf(path);
+      const lower = path.toLowerCase();
+
+      const exact = {
+        'package.json': 'Главный файл зависимостей, скриптов и метаданных Node.js.',
+        'package-lock.json': 'Фиксирует точные версии зависимостей.',
+        'pnpm-lock.yaml': 'Фиксирует версии зависимостей для pnpm.',
+        'yarn.lock': 'Фиксирует версии зависимостей для Yarn.',
+        'readme.md': 'Главная документация проекта.',
+        'platform.md': 'Описание платформы, продукта или внутренние правила проекта.',
+        'roadmap.md': 'План развития проекта по этапам.',
+        'wrangler.toml': 'Конфигурация Cloudflare Workers.',
+        'schema.sql': 'Схема базы данных и таблиц.',
+        '.env.example': 'Образец переменных окружения.',
+        '.gitignore': 'Список файлов, которые Git должен игнорировать.',
+        'index.html': 'Главная веб-страница или точка входа.',
+        'vite.config.js': 'Конфигурация сборщика Vite.',
+        'vite.config.ts': 'Конфигурация сборщика Vite.',
+        'tsconfig.json': 'Конфигурация TypeScript.',
+        'dockerfile': 'Описание сборки Docker-образа.',
+        'docker-compose.yml': 'Запуск нескольких сервисов в Docker.',
+        'docker-compose.yaml': 'Запуск нескольких сервисов в Docker.'
+      };
+      if (exact[file]) return exact[file];
+
+      if (lower.startsWith('functions/api/')) return 'Serverless API-функция, которая обрабатывает HTTP-запросы.';
+      if (lower.startsWith('functions/_shared/')) return 'Общие утилиты и повторно используемые модули для backend-функций.';
+      if (lower.startsWith('public/')) return 'Публичные файлы фронтенда: HTML, CSS, JS и ассеты.';
+      if (lower.startsWith('db/')) return 'Файлы, связанные с базой данных или схемой хранения данных.';
+      if (lower.includes('/tests/') || lower.includes('.test.') || lower.includes('.spec.')) return 'Автоматические тесты.';
+      if (ext === '.js') return 'Файл JavaScript с логикой приложения.';
+      if (ext === '.ts') return 'Файл TypeScript с типизированной логикой приложения.';
+      if (ext === '.html') return 'HTML-разметка пользовательского интерфейса.';
+      if (ext === '.css') return 'Стили интерфейса.';
+      if (ext === '.json') return 'JSON-конфиг или данные.';
+      if (ext === '.sql') return 'SQL-файл для базы данных.';
+      if (ext === '.md') return 'Документация в Markdown.';
+      if (ext === '.toml') return 'Конфигурация в формате TOML.';
+      return 'Вспомогательный файл проекта.';
+    }
+
+    function buildTree(files, maxItems = 70) {
+      const sorted = [...files].sort((a, b) => a.path.localeCompare(b.path));
+      let out = '';
+      for (const f of sorted.slice(0, maxItems)) {
+        const depth = f.path.split('/').length - 1;
+        const indent = '  '.repeat(depth);
+        const icon = f.type === 'tree' ? '📁' : '📄';
+        const name = f.path.split('/').pop();
+        out += `${indent}${icon} ${name}\n`;
+      }
+      if (sorted.length > maxItems) out += `... и ещё ${sorted.length - maxItems} файлов/папок\n`;
+      return out.trim();
+    }
+
+    function extractJsonField(obj, path, fallback = null) {
+      try {
+        return path.split('.').reduce((acc, key) => acc?.[key], obj) ?? fallback;
+      } catch {
+        return fallback;
+      }
+    }
+
+    function parsePackageJson(text) {
+      try {
+        return JSON.parse(text);
+      } catch {
+        return null;
+      }
+    }
+
+    function detectPackageSignals(pkg) {
+      if (!pkg) return { scripts: [], deps: [], devDeps: [], signals: [] };
+      const deps = Object.keys(pkg.dependencies || {});
+      const devDeps = Object.keys(pkg.devDependencies || {});
+      const scripts = Object.keys(pkg.scripts || {});
+      const all = [...deps, ...devDeps].map(x => x.toLowerCase());
+      const signals = [];
+      const has = (n) => all.some(x => x === n || x.includes(n));
+
+      if (has('react')) signals.push('React');
+      if (has('next')) signals.push('Next.js');
+      if (has('express')) signals.push('Express');
+      if (has('supabase')) signals.push('Supabase');
+      if (has('ton')) signals.push('TON');
+      if (has('vite')) signals.push('Vite');
+      if (has('tailwindcss')) signals.push('Tailwind CSS');
+      if (has('axios')) signals.push('Axios');
+      if (has('jsonwebtoken')) signals.push('Auth / JWT');
+      if (has('mongoose')) signals.push('MongoDB / Mongoose');
+      if (has('prisma')) signals.push('Prisma');
+
+      return { scripts, deps, devDeps, signals };
+    }
+
+    function summarizeRepo({ repo, owner, projectType, projectDescription, tech, signals, packageSignals, runtimeHints, architecture }) {
+      const techText = tech.join(', ');
+      const scriptsText = packageSignals.scripts.length ? packageSignals.scripts.slice(0, 6).map(s => `\`${s}\``).join(', ') : 'скрипты не найдены';
+      const hintsText = runtimeHints.length ? runtimeHints.join('; ') : 'явных сигналов мало';
+      return [
+        `Проект **${owner}/${repo}** похож на **${projectType}**.`,
+        `Главные технологии: **${techText}**.`,
+        `Описание из GitHub: ${projectDescription}`,
+        `Основные сигналы из кода: ${hintsText}.`,
+        `Скрипты package.json: ${scriptsText}.`,
+        `Простая схема работы: ${architecture}.`
+      ].join('\n\n');
+    }
+
+    function buildArchitecture(signals, packageSignals, repoType) {
+      const layers = [];
+      if (signals.hasWrangler) layers.push('Cloudflare Workers');
+      else if (signals.hasExpress) layers.push('Node.js API');
+      else if (signals.hasNext) layers.push('Next.js app');
+      else if (signals.hasReact) layers.push('Frontend app');
+      else layers.push('Project code');
+
+      if (signals.hasSupabase) layers.push('Supabase');
+      if (signals.hasDatabase) layers.push('Database / SQL');
+      if (signals.hasTon) layers.push('TON');
+
+      const arrows = layers.join(' → ');
+      const support = [];
+      if (packageSignals.scripts.includes('dev')) support.push('есть dev-режим');
+      if (packageSignals.scripts.includes('build')) support.push('есть build-команда');
+      if (packageSignals.scripts.includes('start')) support.push('есть start-команда');
+
+      const extra = support.length ? `\nПодсказки: ${support.join(', ')}.` : '';
+      return `${arrows}${extra}`;
+    }
+
+    function buildReadme({ repo, owner, cleanUrl, description, projectType, tech, tree, scripts, packageSignals, architecture, configFindings }) {
+      const scriptsLines = scripts.length
+        ? scripts.map(s => `- \`${s}\``).join('\n')
+        : '- Скрипты не найдены';
+
+      const depsLines = packageSignals.deps.length
+        ? packageSignals.deps.slice(0, 12).map(d => `- ${d}`).join('\n')
+        : '- Зависимости не найдены';
+
+      return `# ${repo}
+
+${description}
+
+## Стек
+- Тип проекта: ${projectType}
+- Технологии: ${tech.join(', ')}
+
+## Архитектура
+${architecture}
+
+## Структура проекта
+\
+\
+\\`\
+${tree}
+\
+\
+
+## Скрипты package.json
+${scriptsLines}
+
+## Зависимости
+${depsLines}
+
+## Что найдено в конфигурации
+${configFindings}
+
+## Быстрый старт
+\
+\
+\\`bash
+# Клонирование
+ git clone ${cleanUrl}.git
+ cd ${repo}
+
+# Установка
+ npm install
+
+# Запуск
+ npm start
+\
+\
+
+## Для кого это
+- Для новых разработчиков
+- Для тех, кто хочет понять структуру проекта
+- Для команды, которая быстро входит в кодовую базу`;
+    }
+
+    function buildOnboarding({ owner, repo, projectType, cleanUrl, packageSignals, signals }) {
+      const install = packageSignals.scripts.includes('install') ? 'npm run install' : 'npm install';
+      const run = packageSignals.scripts.includes('dev') ? 'npm run dev' : (packageSignals.scripts.includes('start') ? 'npm start' : 'посмотрите package.json');
+      const configStep = signals.hasSchema ? 'Посмотрите `db/schema.sql`, чтобы понять таблицы и связи.' : 'Проверьте основные конфиги и папку `src/` или `public/`.';
+
+      return `1. **Пойми тип проекта**: это **${projectType}**.
+2. **Склонируй код**: \
+   \
+   \`git clone ${cleanUrl}.git\`
+3. **Установи зависимости**: \
+   \
+   \`${install}\`
+4. **Проверь конфиги**: ${configStep}
+5. **Запусти проект**: \
+   \
+   \`${run}\`
+6. **Изучи скрипты**: открой \\`package.json\\` и README.
+
+Проект: **${owner}/${repo}**`;
+    }
+
+    async function loadImportantFiles(owner, repo, files) {
+      const lowerFiles = new Map(files.map(f => [f.path.toLowerCase(), f.path]));
+      const results = {};
+
+      const targets = [
+        'package.json',
+        'readme.md',
+        'platform.md',
+        'roadmap.md',
+        'wrangler.toml',
+        'db/schema.sql',
+        '.env.example'
+      ];
+
+      const found = targets
+        .map(t => lowerFiles.get(t))
+        .filter(Boolean);
+
+      for (const path of found) {
+        try {
+          const text = await ghText(`/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`);
+          results[path.toLowerCase()] = text;
+        } catch {
+          // silently skip individual files
+        }
+      }
+
+      return results;
+    }
+
+    function parseReadmeIntro(readmeText) {
+      if (!readmeText) return '';
+      const lines = readmeText.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+      const headingIndex = lines.findIndex(line => line.startsWith('#'));
+      const slice = headingIndex >= 0 ? lines.slice(headingIndex + 1) : lines;
+      const intro = slice.find(line => !line.startsWith('#') && !line.startsWith('```') && line.length > 30);
+      return intro || '';
+    }
+
+    function analyzeSchema(sql) {
+      if (!sql) return { tables: [], mentions: [] };
+      const lower = sql.toLowerCase();
+      const tableMatches = [...lower.matchAll(/create\s+table\s+(if\s+not\s+exists\s+)?([a-z0-9_\"`\.]+)\s*\(/g)].map(m => m[2].replace(/["`]/g, ''));
+      const mentions = [];
+      ['users', 'orders', 'products', 'payments', 'files', 'downloads', 'profiles', 'sessions'].forEach(name => {
+        if (lower.includes(name)) mentions.push(name);
+      });
+      return { tables: [...new Set(tableMatches)], mentions: [...new Set(mentions)] };
+    }
+
+    function extractEndpoints(files) {
+      const endpoints = [];
+      for (const f of files) {
+        const p = f.path.toLowerCase();
+        if (p.includes('/api/') || p.includes('functions/api/')) {
+          endpoints.push(f.path);
+        }
+      }
+      return endpoints.sort();
+    }
+
+    function buildConfigFindings({ packageJson, readme, wrangler, schema }) {
+      const parts = [];
+
+      if (packageJson) {
+        const pkg = parsePackageJson(packageJson);
+        if (pkg) {
+          const { scripts, deps, devDeps } = detectPackageSignals(pkg);
+          if (pkg.name) parts.push(`• package.json: имя проекта — ${pkg.name}`);
+          if (pkg.version) parts.push(`• package.json: версия — ${pkg.version}`);
+          if (pkg.scripts && Object.keys(pkg.scripts).length) {
+            parts.push(`• package.json: скрипты — ${Object.keys(pkg.scripts).slice(0, 8).join(', ')}`);
+          }
+          const depPreview = [...deps, ...devDeps].slice(0, 12);
+          if (depPreview.length) parts.push(`• package.json: зависимости — ${depPreview.join(', ')}`);
+        } else {
+          parts.push('• package.json: не удалось распарсить JSON');
+        }
+      }
+
+      if (readme) {
+        const intro = parseReadmeIntro(readme);
+        if (intro) parts.push(`• README: краткое описание — ${intro}`);
+        else parts.push('• README: найден, но краткое описание извлечь не удалось');
+      }
+
+      if (wrangler) {
+        const routes = [];
+        const lines = wrangler.split(/\r?\n/);
+        for (const line of lines) {
+          const t = line.trim();
+          if (/^(name|main|compatibility_date|workers_dev|routes|assets|build)$/i.test(t.split('=')[0]?.trim() || '')) {
+            routes.push(t);
+          }
+        }
+        parts.push(`• wrangler.toml: найден Cloudflare Workers конфиг`);
+        if (routes.length) parts.push(`• wrangler.toml: ключевые строки — ${routes.slice(0, 5).join(' | ')}`);
+      }
+
+      if (schema) {
+        const analysis = analyzeSchema(schema);
+        if (analysis.tables.length) parts.push(`• schema.sql: таблицы — ${analysis.tables.join(', ')}`);
+        if (analysis.mentions.length) parts.push(`• schema.sql: важные сущности — ${analysis.mentions.join(', ')}`);
+      }
+
+      return parts.length ? parts.join('\n') : 'Ничего важного в конфигурации не удалось достать.';
+    }
+
+    function buildTechPills(tech, packageSignals, signals) {
+      const pills = [];
+      for (const t of tech.slice(0, 8)) {
+        pills.push(`<span class="pill soft">${t}</span>`);
+      }
+      if (packageSignals.scripts.includes('dev')) pills.push(`<span class="pill good">dev script</span>`);
+      if (packageSignals.scripts.includes('build')) pills.push(`<span class="pill good">build script</span>`);
+      if (signals.hasSchema) pills.push(`<span class="pill">SQL schema</span>`);
+      return pills.join('');
+    }
+
+    function renderFilesTable(files) {
+      const tbody = document.getElementById('files-table');
+      tbody.innerHTML = '';
+      const filtered = files
+        .filter(f => f.type === 'blob')
+        .filter(f => {
+          const p = f.path.toLowerCase();
+          return p === 'package.json' || p === 'readme.md' || p === 'platform.md' || p === 'roadmap.md' || p === 'wrangler.toml' ||
+                 p.endsWith('.sql') || p.endsWith('.toml') || p.endsWith('.js') || p.endsWith('.ts') || p.endsWith('.html') || p.endsWith('.css') ||
+                 p.includes('/api/') || p.includes('/_shared/') || p.includes('/public/') || p.includes('/db/');
+        })
+        .slice(0, 16)
+        .map(f => ({ path: f.path, purpose: filePurpose(f.path) }));
+
+      for (const row of filtered) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td><code>${row.path}</code></td><td>${row.purpose}</td>`;
+        tbody.appendChild(tr);
+      }
+
+      if (!filtered.length) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="2" class="muted">Подходящие файлы не найдены.</td>`;
+        tbody.appendChild(tr);
+      }
+    }
+
+    document.getElementById('doc-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const repoUrl = document.getElementById('repo-url').value;
+      const loader = document.getElementById('loader');
+      const results = document.getElementById('results-section');
+      const submitBtn = document.getElementById('submit-btn');
+
+      clearMessages();
+      hide('results-section');
+      show('loader');
+      submitBtn.disabled = true;
+
+      try {
+        const { owner, repo, cleanUrl } = parseGitHubRepoUrl(repoUrl);
+
+        const repoData = await ghJson(`/repos/${owner}/${repo}`);
+        const description = repoData.description || 'Описание проекта не указано разработчиком в настройках GitHub.';
+        const defaultBranch = repoData.default_branch || 'main';
+
+        const branchData = await ghJson(`/repos/${owner}/${repo}/branches/${encodeURIComponent(defaultBranch)}`);
+        const treeSha = branchData?.commit?.commit?.tree?.sha;
+        if (!treeSha) throw new Error('Не удалось получить SHA дерева репозитория.');
+
+        const treeData = await ghJson(`/repos/${owner}/${repo}/git/trees/${treeSha}?recursive=1`);
+        const files = Array.isArray(treeData.tree) ? treeData.tree : [];
+        if (!files.length) throw new Error('Репозиторий пустой или дерево файлов не удалось загрузить.');
+
+        if (treeData.truncated) {
+          showWarn('GitHub вернул только часть дерева. У очень больших репозиториев список может быть неполным.');
+        }
+
+        const signals = detectSignals(files);
+        const projectType = detectProjectType(signals);
+        const runtimeHints = detectRuntimeHints(signals);
+        const tree = buildTree(files, 70);
+        const endpoints = extractEndpoints(files);
+
+        const contents = await loadImportantFiles(owner, repo, files);
+        const packageText = contents['package.json'] || '';
+        const readmeText = contents['readme.md'] || '';
+        const wranglerText = contents['wrangler.toml'] || '';
+        const schemaText = contents['db/schema.sql'] || contents['schema.sql'] || '';
+        const envExampleText = contents['.env.example'] || '';
+
+        const packageJson = packageText ? parsePackageJson(packageText) : null;
+        const packageSignals = detectPackageSignals(packageJson);
+        const tech = detectTech({
+          ...signals,
+          packageJson,
+          filePaths: signals.filePaths
+        });
+
+        const architecture = buildArchitecture(signals, packageSignals, projectType);
+        const configFindings = buildConfigFindings({
+          packageJson: packageText,
+          readme: readmeText,
+          wrangler: wranglerText,
+          schema: schemaText
+        });
+
+        const summary = summarizeRepo({
+          repo,
+          owner,
+          projectType,
+          projectDescription: description,
+          tech,
+          signals,
+          packageSignals,
+          runtimeHints,
+          architecture
+        });
+
+        const readme = buildReadme({
+          repo,
+          owner,
+          cleanUrl,
+          description,
+          projectType,
+          tech,
+          tree,
+          scripts: packageSignals.scripts,
+          packageSignals,
+          architecture,
+          configFindings
+        });
+
+        const onboarding = buildOnboarding({
+          owner,
+          repo,
+          projectType,
+          cleanUrl,
+          packageSignals,
+          signals
+        });
+
+        setHtml('summary', summary.replace(/\n/g, '<br><br>'));
+        setHtml('architecture', `${architecture.replace(/\n/g, '<br><br>')}${endpoints.length ? `<br><br><strong>Найденные API/функции:</strong><br>${endpoints.slice(0, 12).map(p => `• ${p}`).join('<br>')}` : ''}`);
+        setText('structure', tree);
+        setText('readme-preview', readme);
+        setHtml('onboarding', onboarding.replace(/\n/g, '<br>'));
+        setHtml('config-findings', configFindings.replace(/\n/g, '<br>'));
+        setHtml('tech-pills', buildTechPills(tech, packageSignals, signals));
+
+        renderFilesTable(files);
+
+        if (readmeText) {
+          showInfo('README найден и использован как источник для анализа.');
+        } else if (packageText) {
+          showInfo('README не найден, поэтому анализ строится по package.json и структуре репозитория.');
+        } else {
+          showInfo('Базовый анализ завершён. Для более точного результата добавьте README и package.json в репозиторий.');
+        }
+
+        if (schemaText && !schemaText.trim()) {
+          showWarn('schema.sql найден, но прочитать его содержимое не удалось полностью.');
+        }
+
+        if (envExampleText) {
+          // no-op, but helps future extensions
+        }
+
+        document.getElementById('btn-copy').onclick = async () => {
+          try {
+            await navigator.clipboard.writeText(readme);
+            alert('README.md скопирован!');
+          } catch {
+            alert('Не удалось скопировать текст.');
+          }
+        };
+
+        document.getElementById('btn-download').onclick = () => {
+          const blob = new Blob([readme], { type: 'text/markdown;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'README.md';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        };
+
+        show('results-section');
+      } catch (err) {
+        showError(err?.message || 'Произошла неизвестная ошибка.');
+      } finally {
+        hide('loader');
+        submitBtn.disabled = false;
+      }
+    });
+  </script></body>
+  </html>
