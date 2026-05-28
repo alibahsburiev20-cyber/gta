@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GitDoc — Stage 2</title>
+  <title>GitDoc — Stage 3</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -16,10 +16,10 @@
       --soft-border: #bfdbfe;
       --good: #f0fdf4;
       --good-border: #bbf7d0;
-      --error: #fef2f2;
-      --error-text: #991b1b;
       --warn: #fffbeb;
       --warn-border: #f59e0b;
+      --error: #fef2f2;
+      --error-text: #991b1b;
       --shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
     }* { box-sizing: border-box; }
 body {
@@ -31,12 +31,12 @@ body {
   line-height: 1.6;
 }
 
-.container { max-width: 1180px; margin: 0 auto; }
+.container { max-width: 1200px; margin: 0 auto; }
 header { text-align: center; margin: 22px 0 18px; }
 header h1 { margin: 0 0 6px; font-size: clamp(2rem, 4vw, 3rem); }
 header p { margin: 0; color: var(--muted); }
 
-form { display: flex; gap: 10px; }
+form { display: flex; gap: 10px; align-items: stretch; }
 input[type="url"] {
   flex: 1;
   padding: 14px 16px;
@@ -56,13 +56,42 @@ button {
   font-size: 1rem;
   cursor: pointer;
   transition: 0.2s ease;
+  white-space: nowrap;
 }
 #submit-btn, .btn-primary { background: var(--primary); color: #fff; }
 #submit-btn:hover, .btn-primary:hover { background: var(--primary-hover); }
 .btn-secondary { background: #e2e8f0; color: #0f172a; }
 .btn-secondary:hover { background: #cbd5e1; }
+.btn-ghost { background: #fff; color: #0f172a; border: 1px solid var(--border); }
+.btn-ghost:hover { background: #f8fafc; }
 
 .search-section { margin-bottom: 18px; }
+.controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  align-items: center;
+}
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  user-select: none;
+}
+.toggle input { transform: scale(1.05); }
+select {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-size: 0.95rem;
+}
+
 .bar { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
 
 .card {
@@ -81,13 +110,14 @@ button {
 }
 
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-@media (max-width: 920px) {
+@media (max-width: 980px) {
   .grid { grid-template-columns: 1fr; }
   form { flex-direction: column; }
 }
 
 .text-block { white-space: pre-wrap; }
 .muted { color: var(--muted); }
+.small { font-size: 0.92rem; }
 
 pre {
   margin: 0;
@@ -97,7 +127,7 @@ pre {
   color: #e2e8f0;
   overflow-x: auto;
   overflow-y: auto;
-  max-height: 380px;
+  max-height: 420px;
   font-size: 0.9rem;
   line-height: 1.5;
 }
@@ -156,6 +186,19 @@ th { background: #f8fafc; }
   padding: 16px;
 }
 
+.ai-panel {
+  background: linear-gradient(180deg, #f8fbff, #ffffff);
+  border: 1px solid #dbeafe;
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
 footer { text-align: center; margin: 32px 0 8px; color: var(--muted); font-size: 0.88rem; }
 
   </style>
@@ -163,19 +206,33 @@ footer { text-align: center; margin: 32px 0 8px; color: var(--muted); font-size:
 <body>
   <div class="container">
     <header>
-      <h1>GitDoc — Stage 2</h1>
-      <p>Читает структуру проекта и содержимое ключевых файлов: package.json, README, schema.sql, wrangler.toml.</p>
+      <h1>GitDoc — Stage 3</h1>
+      <p>Гибридный анализатор репозиториев: обычный разбор + open-source AI прямо в браузере.</p>
     </header><main>
   <section class="search-section">
     <form id="doc-form">
       <input type="url" id="repo-url" placeholder="https://github.com/user/repository" required />
       <button id="submit-btn" type="submit">Анализировать</button>
     </form>
+
+    <div class="controls">
+      <label class="toggle">
+        <input id="ai-enabled" type="checkbox" checked />
+        <span>AI-режим</span>
+      </label>
+
+      <select id="model-select" title="Модель для AI-режима">
+        <option value="onnx-community/Qwen2.5-Coder-0.5B-Instruct" selected>Qwen2.5 Coder 0.5B (быстро)</option>
+        <option value="Xenova/Phi-3-mini-4k-instruct">Phi-3 Mini 4K (умнее, тяжелее)</option>
+      </select>
+
+      <button id="run-ai-btn" class="btn-ghost" type="button">Запустить AI отдельно</button>
+    </div>
   </section>
 
   <div id="loader" class="loader hidden">
     <div class="spinner"></div>
-    <p>Сканируем репозиторий и читаем ключевые файлы...</p>
+    <p id="loader-text">Сканируем репозиторий и читаем ключевые файлы...</p>
   </div>
 
   <div id="error-message" class="error hidden"></div>
@@ -226,6 +283,22 @@ footer { text-align: center; margin: 32px 0 8px; color: var(--muted); font-size:
       </div>
     </div>
 
+    <div class="grid">
+      <div class="card ai-panel">
+        <h2>AI-анализ</h2>
+        <div id="ai-status" class="text-block muted small">AI ещё не запускался.</div>
+        <div style="margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap;">
+          <button id="btn-ai-generate" class="btn-primary" type="button">Сгенерировать AI-отчёт</button>
+          <button id="btn-ai-fallback" class="btn-secondary" type="button">Обновить шаблонный отчёт</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>AI-отчёт</h2>
+        <div id="ai-report" class="text-block muted">Пока пусто.</div>
+      </div>
+    </div>
+
     <div class="card">
       <h2>README.md</h2>
       <pre><code id="readme-preview"></code></pre>
@@ -239,27 +312,37 @@ footer { text-align: center; margin: 32px 0 8px; color: var(--muted); font-size:
 </main>
 
 <footer>
-  <p>Stage 2 — полностью бесплатный клиентский анализ без серверов и ключей.</p>
+  <p>Stage 3 — без сервера, без платных API, с локальным AI через Transformers.js.</p>
 </footer>
 
-  </div>  <script>
+  </div>  <script type="module">
     const GH_API = 'https://api.github.com';
+    const DEFAULT_MODEL = 'onnx-community/Qwen2.5-Coder-0.5B-Instruct';
+    const PHI_MODEL = 'Xenova/Phi-3-mini-4k-instruct';
+
+    let currentRepoState = null;
+    let aiPipeline = null;
+    let aiPipelineModel = null;
+    let transformersModule = null;
+
+    function byId(id) {
+      return document.getElementById(id);
+    }
 
     function setText(id, text) {
-      document.getElementById(id).textContent = text;
+      byId(id).textContent = text;
     }
 
     function setHtml(id, html) {
-      document.getElementById(id).innerHTML = html;
+      byId(id).innerHTML = html;
     }
 
     function show(id) {
-      const el = document.getElementById(id);
-      el.classList.remove('hidden');
+      byId(id).classList.remove('hidden');
     }
 
     function hide(id) {
-      document.getElementById(id).classList.add('hidden');
+      byId(id).classList.add('hidden');
     }
 
     function clearMessages() {
@@ -315,9 +398,7 @@ footer { text-align: center; margin: 32px 0 8px; color: var(--muted); font-size:
 
     async function ghJson(path) {
       const res = await fetch(`${GH_API}${path}`, {
-        headers: {
-          'Accept': 'application/vnd.github+json'
-        }
+        headers: { 'Accept': 'application/vnd.github+json' }
       });
 
       if (!res.ok) {
@@ -604,7 +685,7 @@ footer { text-align: center; margin: 32px 0 8px; color: var(--muted); font-size:
 
       if (wrangler) {
         const lines = wrangler.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-        const keyLines = lines.filter((line) => /^\w+\s*=/.test(line) || /^.+$/.test(line));
+        const keyLines = lines.filter((line) => /^\w+\s*=/.test(line) || /^\[.+\]$/.test(line));
         parts.push('• wrangler.toml: найден Cloudflare Workers конфиг');
         if (keyLines.length) parts.push(`• wrangler.toml: ключевые строки — ${keyLines.slice(0, 6).join(' | ')}`);
       }
@@ -628,8 +709,15 @@ footer { text-align: center; margin: 32px 0 8px; color: var(--muted); font-size:
     }
 
     function buildReadme({ repo, cleanUrl, description, projectType, tech, tree, scripts, architecture, configFindings, deps }) {
-      const scriptsLines = scripts.length ? scripts.map((s) => `- \`${s}\``).join('\n') : '- Скрипты не найдены';
-      const depsLines = deps.length ? deps.slice(0, 12).map((d) => `- ${d}`).join('\n') : '- Зависимости не найдены';
+      const scriptsLines = scripts.length
+        ? scripts.map((s) => `- \`${s}\``).join('
+')
+        : '- Скрипты не найдены';
+
+      const depsLines = deps.length
+        ? deps.slice(0, 12).map((d) => `- ${d}`).join('
+')
+        : '- Зависимости не найдены';
 
       return `# ${repo}
 
@@ -646,31 +734,9 @@ ${architecture}
 \
 \
 \
-
-env
-
-env
-
-env
-
-a
-
-
-t
-\
-\
-
-\
-\
-\
-\
-\
-
-text
+\`\`\`text
 ${tree}
-\
-\
-\
+\`\`\`
 
 ## Скрипты package.json
 ${scriptsLines}
@@ -682,24 +748,13 @@ ${depsLines}
 ${configFindings}
 
 ## Быстрый старт
-\
-\
-\
-\
-\
-bash
-# Клонирование
- git clone ${cleanUrl}.git
- cd ${repo}
+\`\`\`bash
+git clone ${cleanUrl}.git
+cd ${repo}
 
-# Установка
- npm install
-
-# Запуск
- npm start
-\
-\
-\
+npm install
+npm run dev
+\`\`\`
 
 ## Для кого это
 - Для новых разработчиков
@@ -733,7 +788,7 @@ bash
         try {
           result[realPath.toLowerCase()] = await ghFileText(owner, repo, realPath);
         } catch {
-          // Skip single file failures without breaking the whole app.
+          // ignore single file failures
         }
       }
 
@@ -741,7 +796,7 @@ bash
     }
 
     function renderFilesTable(files) {
-      const tbody = document.getElementById('files-table');
+      const tbody = byId('files-table');
       tbody.innerHTML = '';
 
       const filtered = files
@@ -769,141 +824,404 @@ bash
       }
     }
 
-    document.getElementById('doc-form').addEventListener('submit', async (e) => {
+    function flattenReadmeStyleTree(treeText) {
+      return treeText.split('\n').map((line) => line.replace(/\s+$/g, '')).join('\n');
+    }
+
+    function buildSummary({ owner, repo, projectType, description, tech, packageSignals, runtimeHints, architecture }) {
+      const scriptsText = packageSignals.scripts.length
+        ? packageSignals.scripts.slice(0, 6).map((s) => `\`${s}\``).join(', ')
+        : 'не найдены';
+
+      return [
+        `Проект **${owner}/${repo}** похож на **${projectType}**.`,
+        `Главные технологии: **${tech.join(', ')}**.`,
+        `Описание из GitHub: ${description}`,
+        `Основные сигналы из кода: ${runtimeHints.length ? runtimeHints.join('; ') : 'явных сигналов мало'}.`,
+        `Скрипты package.json: ${scriptsText}.`,
+        `Простая схема работы: ${architecture}.`
+      ].join('\n\n');
+    }
+
+    function extractKeyRepoText(state) {
+      const parts = [];
+      if (state.packageText) parts.push(`PACKAGE_JSON:\n${state.packageText.slice(0, 12000)}`);
+      if (state.readmeText) parts.push(`README:\n${state.readmeText.slice(0, 12000)}`);
+      if (state.wranglerText) parts.push(`WRANGLER:\n${state.wranglerText.slice(0, 6000)}`);
+      if (state.schemaText) parts.push(`SCHEMA_SQL:\n${state.schemaText.slice(0, 12000)}`);
+      if (state.envExampleText) parts.push(`ENV_EXAMPLE:\n${state.envExampleText.slice(0, 6000)}`);
+      if (state.fileListText) parts.push(`FILE_TREE:\n${state.fileListText.slice(0, 12000)}`);
+      return parts.join('\n\n');
+    }
+
+    function createPrompt(repoState, modelKind) {
+      const base = extractKeyRepoText(repoState);
+      const instructions = modelKind === 'phi'
+        ? `Ты помощник для анализа GitHub репозиториев. Отвечай по-русски, просто и коротко. Верни ТОЛЬКО JSON без markdown и без лишнего текста. Формат:\n{\n  "summary": "...",\n  "architecture": "...",\n  "risks": ["..."],\n  "docs": ["..."],\n  "quickstart": "..."\n}\nПиши конкретно, без воды.`
+        : `You are a concise repository analyzer. Answer in Russian. Return ONLY valid JSON, no markdown, no code fences. Use this exact schema:\n{\n  "summary": "...",\n  "architecture": "...",\n  "risks": ["..."],\n  "docs": ["..."],\n  "quickstart": "..."\n}\nKeep it short, specific, and grounded in the repository context.`;
+
+      return `${instructions}\n\nRepository context:\n${base}`;
+    }
+
+    function parseModelOutput(output) {
+      const candidates = [];
+
+      if (typeof output === 'string') {
+        candidates.push(output);
+      } else if (Array.isArray(output)) {
+        for (const item of output) {
+          if (typeof item === 'string') candidates.push(item);
+          if (item && typeof item.generated_text === 'string') candidates.push(item.generated_text);
+          if (item && Array.isArray(item.generated_text)) {
+            const last = item.generated_text[item.generated_text.length - 1];
+            if (typeof last === 'string') candidates.push(last);
+            if (last && typeof last.content === 'string') candidates.push(last.content);
+          }
+        }
+      } else if (output && typeof output === 'object') {
+        if (typeof output.generated_text === 'string') candidates.push(output.generated_text);
+      }
+
+      const text = candidates.find(Boolean) || '';
+      return text.trim();
+    }
+
+    function extractJsonFromText(text) {
+      if (!text) return null;
+      const fenced = text.match(/```json\s*([\s\S]*?)```/i);
+      const block = fenced ? fenced[1] : text;
+      const first = block.indexOf('{');
+      const last = block.lastIndexOf('}');
+      if (first < 0 || last < 0 || last <= first) return null;
+      const slice = block.slice(first, last + 1);
+      try {
+        return JSON.parse(slice);
+      } catch {
+        return null;
+      }
+    }
+
+    function fallbackAiReport(state) {
+      const endpoints = state.endpoints.length
+        ? state.endpoints.slice(0, 8).map((x) => `• ${x}`).join('\n')
+        : '• API endpoints не найдены';
+
+      const schemaInfo = state.schemaAnalysis.tables.length || state.schemaAnalysis.mentions.length
+        ? `Таблицы: ${state.schemaAnalysis.tables.join(', ') || 'не найдены'}\nСущности: ${state.schemaAnalysis.mentions.join(', ') || 'не найдены'}`
+        : 'Схема БД не найдена или не распознана.';
+
+      return {
+        summary: `Проект ${state.owner}/${state.repo} выглядит как ${state.projectType}.`,
+        architecture: state.architecture,
+        risks: [
+          state.signals.hasSchema ? 'Проверь ограничения и индексы в SQL-схеме.' : 'В репозитории не найден явный SQL-контекст.',
+          state.packageSignals.scripts.includes('deploy') ? 'Проверь конфигурацию deploy-скрипта.' : 'Скрипты деплоя не найдены.'
+        ],
+        docs: [
+          state.readmeText ? 'README уже есть, но его стоит расширить.' : 'README стоит добавить или усилить.',
+          state.signals.hasWrangler ? 'Описать Cloudflare Workers runtime.' : 'Описать запуск и окружение проекта.',
+          state.endpoints.length ? 'Отдельно описать API-функции.' : 'Добавить секцию API, если она есть.'
+        ],
+        quickstart: `Клонировать репозиторий, запустить ${state.packageSignals.scripts.includes('dev') ? 'npm run dev' : 'npm install && npm start'}.\n\nAPI:\n${endpoints}\n\nDB:\n${schemaInfo}`
+      };
+    }
+
+    async function loadTransformers() {
+      if (transformersModule) return transformersModule;
+      const urls = [
+        'https://cdn.jsdelivr.net/npm/@huggingface/transformers',
+        'https://cdn.jsdelivr.net/npm/@huggingface/transformers@latest'
+      ];
+
+      let lastError = null;
+      for (const url of urls) {
+        try {
+          transformersModule = await import(url);
+          return transformersModule;
+        } catch (err) {
+          lastError = err;
+        }
+      }
+
+      throw lastError || new Error('Не удалось загрузить Transformers.js.');
+    }
+
+    async function ensureAiPipeline(modelId) {
+      if (aiPipeline && aiPipelineModel === modelId) return aiPipeline;
+
+      const { pipeline, env } = await loadTransformers();
+      try {
+        env.allowRemoteModels = true;
+        env.useBrowserCache = true;
+      } catch {
+        // ignore if env settings are unavailable in some builds
+      }
+
+      const hasWebGPU = typeof navigator !== 'undefined' && !!navigator.gpu;
+      const options = hasWebGPU ? { dtype: 'q4', device: 'webgpu' } : { dtype: 'q4', device: 'wasm' };
+      aiPipeline = await pipeline('text-generation', modelId, options);
+      aiPipelineModel = modelId;
+      return aiPipeline;
+    }
+
+    function updateAiStatus(text) {
+      setText('ai-status', text);
+    }
+
+    function renderAiReport(report) {
+      const safe = (v) => String(v || '').trim();
+      const risks = Array.isArray(report.risks) ? report.risks : [];
+      const docs = Array.isArray(report.docs) ? report.docs : [];
+
+      const html = `
+        <div><strong>Summary:</strong><br>${safe(report.summary).replace(/\n/g, '<br>')}</div>
+        <br>
+        <div><strong>Architecture:</strong><br>${safe(report.architecture).replace(/\n/g, '<br>')}</div>
+        <br>
+        <div><strong>Risks:</strong><br>${risks.length ? risks.map((x) => `• ${safe(x)}`).join('<br>') : '• Нет данных'}</div>
+        <br>
+        <div><strong>Docs to add:</strong><br>${docs.length ? docs.map((x) => `• ${safe(x)}`).join('<br>') : '• Нет данных'}</div>
+        <br>
+        <div><strong>Quick start:</strong><br>${safe(report.quickstart).replace(/\n/g, '<br>')}</div>
+      `;
+      setHtml('ai-report', html);
+    }
+
+    async function runAiAnalysis() {
+      if (!currentRepoState) {
+        showWarn('Сначала открой репозиторий и подожди базовый анализ.');
+        return;
+      }
+
+      const modelId = byId('model-select').value;
+      const modelKind = modelId === PHI_MODEL ? 'phi' : 'qwen';
+      const aiEnabled = byId('ai-enabled').checked;
+      if (!aiEnabled) {
+        showWarn('AI-режим выключен. Включи чекбокс, если нужен локальный AI-отчёт.');
+        return;
+      }
+
+      hide('error-message');
+      updateAiStatus('Загружаю open-source модель в браузер...');
+      byId('loader-text').textContent = 'Поднимаем локальную AI-модель и анализируем репозиторий...';
+      show('loader');
+
+      try {
+        const pipe = await ensureAiPipeline(modelId);
+        updateAiStatus(`Модель загружена: ${modelId}. Генерирую отчёт...`);
+
+        const prompt = createPrompt(currentRepoState, modelKind);
+        const output = await pipe(prompt, {
+          max_new_tokens: 280,
+          do_sample: false,
+          return_full_text: false
+        });
+
+        const text = parseModelOutput(output);
+        const parsed = extractJsonFromText(text);
+        const report = parsed || fallbackAiReport(currentRepoState);
+
+        if (parsed) {
+          updateAiStatus(`AI-отчёт создан локально через ${modelId}.`);
+          renderAiReport(report);
+        } else {
+          updateAiStatus('Модель ответила, но формат JSON не распознан. Показан безопасный fallback-отчёт.');
+          renderAiReport(report);
+        }
+      } catch (err) {
+        updateAiStatus('AI не загрузился. Показан fallback-отчёт без модели.');
+        showWarn(`AI-режим не запустился: ${err?.message || err}`);
+        const report = fallbackAiReport(currentRepoState);
+        renderAiReport(report);
+      } finally {
+        hide('loader');
+      }
+    }
+
+    function populateBaseUi(state) {
+      setHtml('summary', state.summary.replace(/\n/g, '<br><br>'));
+      setHtml('architecture', `${state.architecture.replace(/\n/g, '<br><br>')}${state.endpoints.length ? `<br><br><strong>Найденные API/функции:</strong><br>${state.endpoints.slice(0, 12).map((p) => `• ${p}`).join('<br>')}` : ''}`);
+      setText('structure', state.tree);
+      setText('readme-preview', state.readme);
+      setHtml('onboarding', state.onboarding.replace(/\n/g, '<br>'));
+      setHtml('config-findings', state.configFindings.replace(/\n/g, '<br>'));
+      setHtml('tech-pills', buildTechPills(state.tech, state.packageSignals, state.signals));
+      renderFilesTable(state.files);
+
+      if (state.readmeText) {
+        showInfo('README найден и использован как источник для анализа.');
+      } else if (state.packageText) {
+        showInfo('README не найден, поэтому анализ строится по package.json и структуре репозитория.');
+      } else {
+        showInfo('Базовый анализ завершён. Для более точного результата добавьте README и package.json в репозиторий.');
+      }
+
+      if (!state.schemaText && state.signals.hasSchema) {
+        showWarn('schema.sql найден, но содержимое прочитать не удалось.');
+      }
+
+      setText('ai-report', 'Нажми кнопку «Сгенерировать AI-отчёт», чтобы получить локальный AI-разбор.');
+    }
+
+    async function analyzeRepository(repoUrl) {
+      const { owner, repo, cleanUrl } = parseGitHubRepoUrl(repoUrl);
+      const repoData = await ghJson(`/repos/${owner}/${repo}`);
+      const description = repoData.description || 'Описание проекта не указано разработчиком в настройках GitHub.';
+      const defaultBranch = repoData.default_branch || 'main';
+      const branchData = await ghJson(`/repos/${owner}/${repo}/branches/${encodeURIComponent(defaultBranch)}`);
+      const treeSha = branchData?.commit?.commit?.tree?.sha;
+      if (!treeSha) throw new Error('Не удалось получить SHA дерева репозитория.');
+
+      const treeData = await ghJson(`/repos/${owner}/${repo}/git/trees/${treeSha}?recursive=1`);
+      const files = Array.isArray(treeData.tree) ? treeData.tree : [];
+      if (!files.length) throw new Error('Репозиторий пустой или дерево файлов не удалось загрузить.');
+
+      if (treeData.truncated) {
+        showWarn('GitHub вернул только часть дерева. Для очень больших репозиториев список может быть неполным.');
+      }
+
+      const signals = detectSignals(files);
+      const projectType = detectProjectType(signals);
+      const runtimeHints = detectRuntimeHints(signals);
+      const tree = buildTree(files, 70);
+      const endpoints = extractEndpoints(files);
+
+      const contents = await loadImportantFiles(owner, repo, files);
+      const packageText = contents['package.json'] || '';
+      const readmeText = contents['readme.md'] || '';
+      const wranglerText = contents['wrangler.toml'] || '';
+      const schemaText = contents['db/schema.sql'] || contents['schema.sql'] || '';
+      const envExampleText = contents['.env.example'] || '';
+
+      const packageJson = packageText ? parsePackageJson(packageText) : null;
+      const packageSignals = detectPackageSignals(packageJson);
+      const tech = techFromSignals(signals, packageSignals);
+      const architecture = buildArchitecture(signals, packageSignals);
+      const configFindings = buildConfigFindings({
+        packageJson: packageText,
+        readme: readmeText,
+        wrangler: wranglerText,
+        schema: schemaText
+      });
+
+      const summary = buildSummary({
+        owner,
+        repo,
+        projectType,
+        description,
+        tech,
+        packageSignals,
+        runtimeHints,
+        architecture
+      });
+
+      const readme = buildReadme({
+        repo,
+        cleanUrl,
+        description,
+        projectType,
+        tech,
+        tree: flattenReadmeStyleTree(tree),
+        scripts: packageSignals.scripts,
+        architecture,
+        configFindings,
+        deps: [...packageSignals.deps, ...packageSignals.devDeps]
+      });
+
+      const onboarding = buildOnboarding({
+        owner,
+        repo,
+        projectType,
+        cleanUrl,
+        packageSignals,
+        signals
+      });
+
+      const schemaAnalysis = analyzeSchema(schemaText);
+
+      return {
+        owner,
+        repo,
+        cleanUrl,
+        description,
+        projectType,
+        signals,
+        packageSignals,
+        tech,
+        architecture,
+        runtimeHints,
+        tree: flattenReadmeStyleTree(tree),
+        readme,
+        onboarding,
+        configFindings,
+        summary,
+        files,
+        endpoints,
+        packageText,
+        readmeText,
+        wranglerText,
+        schemaText,
+        envExampleText,
+        schemaAnalysis
+      };
+    }
+
+    function wireActions() {
+      byId('btn-copy').onclick = async () => {
+        if (!currentRepoState) return;
+        try {
+          await navigator.clipboard.writeText(currentRepoState.readme);
+          alert('README.md скопирован!');
+        } catch {
+          alert('Не удалось скопировать текст.');
+        }
+      };
+
+      byId('btn-download').onclick = () => {
+        if (!currentRepoState) return;
+        const blob = new Blob([currentRepoState.readme], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'README.md';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      };
+
+      byId('btn-ai-generate').onclick = runAiAnalysis;
+      byId('btn-ai-fallback').onclick = () => {
+        if (!currentRepoState) return;
+        renderAiReport(fallbackAiReport(currentRepoState));
+        updateAiStatus('Показан шаблонный отчёт без модели.');
+      };
+
+      byId('run-ai-btn').onclick = runAiAnalysis;
+    }
+
+    byId('doc-form').addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const repoUrl = document.getElementById('repo-url').value;
-      const loader = document.getElementById('loader');
-      const results = document.getElementById('results-section');
-      const submitBtn = document.getElementById('submit-btn');
+      const repoUrl = byId('repo-url').value;
+      const loader = byId('loader');
+      const submitBtn = byId('submit-btn');
 
       clearMessages();
       hide('results-section');
       show('loader');
       submitBtn.disabled = true;
+      byId('loader-text').textContent = 'Сканируем репозиторий и читаем ключевые файлы...';
 
       try {
-        const { owner, repo, cleanUrl } = parseGitHubRepoUrl(repoUrl);
-
-        const repoData = await ghJson(`/repos/${owner}/${repo}`);
-        const description = repoData.description || 'Описание проекта не указано разработчиком в настройках GitHub.';
-        const defaultBranch = repoData.default_branch || 'main';
-
-        const branchData = await ghJson(`/repos/${owner}/${repo}/branches/${encodeURIComponent(defaultBranch)}`);
-        const treeSha = branchData?.commit?.commit?.tree?.sha;
-        if (!treeSha) throw new Error('Не удалось получить SHA дерева репозитория.');
-
-        const treeData = await ghJson(`/repos/${owner}/${repo}/git/trees/${treeSha}?recursive=1`);
-        const files = Array.isArray(treeData.tree) ? treeData.tree : [];
-        if (!files.length) throw new Error('Репозиторий пустой или дерево файлов не удалось загрузить.');
-
-        if (treeData.truncated) {
-          showWarn('GitHub вернул только часть дерева. Для очень больших репозиториев список может быть неполным.');
-        }
-
-        const signals = detectSignals(files);
-        const projectType = detectProjectType(signals);
-        const runtimeHints = detectRuntimeHints(signals);
-        const tree = buildTree(files, 70);
-        const endpoints = extractEndpoints(files);
-
-        const contents = await loadImportantFiles(owner, repo, files);
-        const packageText = contents['package.json'] || '';
-        const readmeText = contents['readme.md'] || '';
-        const wranglerText = contents['wrangler.toml'] || '';
-        const schemaText = contents['db/schema.sql'] || contents['schema.sql'] || '';
-        const envExampleText = contents['.env.example'] || '';
-
-        const packageJson = packageText ? parsePackageJson(packageText) : null;
-        const packageSignals = detectPackageSignals(packageJson);
-        const tech = techFromSignals(signals, packageSignals);
-        const architecture = buildArchitecture(signals, packageSignals);
-        const configFindings = buildConfigFindings({
-          packageJson: packageText,
-          readme: readmeText,
-          wrangler: wranglerText,
-          schema: schemaText
-        });
-
-        const summary = [
-          `Проект **${owner}/${repo}** похож на **${projectType}**.`,
-          `Главные технологии: **${tech.join(', ')}**.`,
-          `Описание из GitHub: ${description}`,
-          `Основные сигналы из кода: ${runtimeHints.length ? runtimeHints.join('; ') : 'явных сигналов мало'}.`,
-          `Скрипты package.json: ${packageSignals.scripts.length ? packageSignals.scripts.slice(0, 6).map((s) => `\`${s}\``).join(', ') : 'не найдены'}.`,
-          `Простая схема работы: ${architecture}.`
-        ].join('\n\n');
-
-        const readme = buildReadme({
-          repo,
-          cleanUrl,
-          description,
-          projectType,
-          tech,
-          tree,
-          scripts: packageSignals.scripts,
-          architecture,
-          configFindings,
-          deps: [...packageSignals.deps, ...packageSignals.devDeps]
-        });
-
-        const onboarding = buildOnboarding({
-          owner,
-          repo,
-          projectType,
-          cleanUrl,
-          packageSignals,
-          signals
-        });
-
-        setHtml('summary', summary.replace(/\n/g, '<br><br>'));
-        setHtml('architecture', `${architecture.replace(/\n/g, '<br><br>')}${endpoints.length ? `<br><br><strong>Найденные API/функции:</strong><br>${endpoints.slice(0, 12).map((p) => `• ${p}`).join('<br>')}` : ''}`);
-        setText('structure', tree);
-        setText('readme-preview', readme);
-        setHtml('onboarding', onboarding.replace(/\n/g, '<br>'));
-        setHtml('config-findings', configFindings.replace(/\n/g, '<br>'));
-        setHtml('tech-pills', buildTechPills(tech, packageSignals, signals));
-
-        renderFilesTable(files);
-
-        if (readmeText) {
-          showInfo('README найден и использован как источник для анализа.');
-        } else if (packageText) {
-          showInfo('README не найден, поэтому анализ строится по package.json и структуре репозитория.');
-        } else {
-          showInfo('Базовый анализ завершён. Для более точного результата добавьте README и package.json в репозиторий.');
-        }
-
-        if (!schemaText && signals.hasSchema) {
-          showWarn('schema.sql найден, но содержимое прочитать не удалось.');
-        }
-
-        if (envExampleText) {
-          // reserved for future use
-        }
-
-        document.getElementById('btn-copy').onclick = async () => {
-          try {
-            await navigator.clipboard.writeText(readme);
-            alert('README.md скопирован!');
-          } catch {
-            alert('Не удалось скопировать текст.');
-          }
-        };
-
-        document.getElementById('btn-download').onclick = () => {
-          const blob = new Blob([readme], { type: 'text/markdown;charset=utf-8' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = 'README.md';
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          URL.revokeObjectURL(url);
-        };
-
+        currentRepoState = await analyzeRepository(repoUrl);
+        populateBaseUi(currentRepoState);
         show('results-section');
+        wireActions();
+
+        if (byId('ai-enabled').checked) {
+          runAiAnalysis();
+        }
       } catch (err) {
         showError(err?.message || 'Произошла неизвестная ошибка.');
       } finally {
