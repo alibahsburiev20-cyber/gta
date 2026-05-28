@@ -1,316 +1,213 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>GitDoc AI</title>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GitDoc Ultimate</title>
 <style>
-:root {
-  --bg: #0f172a;
-  --card: #111827;
-  --text: #f8fafc;
-  --muted: #94a3b8;
-  --accent: #3b82f6;
-  --border: #1e293b;
+:root{
+--bg:#0f172a;
+--card:#111827;
+--text:#e5e7eb;
+--muted:#94a3b8;
+--accent:#3b82f6;
+--border:#1e293b;
 }
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+font-family:Arial,sans-serif;
+background:var(--bg);
+color:var(--text);
+padding:20px;
 }
-
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: Arial, sans-serif;
-  padding: 20px;
+.container{
+max-width:1200px;
+margin:auto;
 }
-
-.container {
-  max-width: 1200px;
-  margin: auto;
+h1{
+font-size:2rem;
+margin-bottom:10px;
 }
-
-h1 {
-  margin-bottom: 10px;
+p{
+color:var(--muted);
+margin-bottom:20px;
 }
-
-p {
-  color: var(--muted);
+form{
+display:flex;
+gap:10px;
+margin-bottom:20px;
+flex-wrap:wrap;
 }
-
-.form-box {
-  margin-top: 25px;
-  display: flex;
-  gap: 10px;
+input{
+flex:1;
+padding:14px;
+border:none;
+border-radius:10px;
+background:#1e293b;
+color:white;
 }
-
-input {
-  flex: 1;
-  padding: 14px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: #020617;
-  color: white;
+button{
+padding:14px 18px;
+border:none;
+border-radius:10px;
+background:var(--accent);
+color:white;
+cursor:pointer;
+font-weight:bold;
 }
-
-button {
-  padding: 14px 18px;
-  border: none;
-  border-radius: 10px;
-  background: var(--accent);
-  color: white;
-  cursor: pointer;
-  font-weight: bold;
+.card{
+background:var(--card);
+padding:20px;
+border-radius:14px;
+margin-bottom:20px;
+border:1px solid var(--border);
 }
-
-button:hover {
-  opacity: 0.9;
+pre{
+overflow:auto;
+background:#020617;
+padding:15px;
+border-radius:10px;
+margin-top:10px;
+white-space:pre-wrap;
 }
-
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 20px;
-  margin-top: 20px;
+.hidden{
+display:none;
 }
-
-.hidden {
-  display: none;
-}
-
-pre {
-  overflow-x: auto;
-  white-space: pre-wrap;
-  line-height: 1.5;
-}
-
-.loader {
-  margin-top: 20px;
-  color: #60a5fa;
-}
-
-.error {
-  margin-top: 20px;
-  background: #450a0a;
-  color: #fecaca;
-  padding: 15px;
-  border-radius: 10px;
+.loader{
+margin-top:20px;
+font-weight:bold;
 }
 </style>
 </head>
 <body>
-
 <div class="container">
-  <h1>⚡ GitDoc AI</h1>
-  <p>AI-анализатор GitHub репозиториев</p>
 
-  <div class="form-box">
-    <input
-      type="text"
-      id="repoInput"
-      placeholder="https://github.com/user/repository"
-    />
+<h1>⚡ GitDoc Ultimate</h1>
+<p>AI-анализатор GitHub репозиториев</p>
 
-    <button id="analyzeBtn">Анализировать</button>
-  </div>
+<form id="form">
+<input type="url" id="repo" placeholder="https://github.com/user/repo" required>
+<button type="submit">Анализировать</button>
+</form>
 
-  <div id="loader" class="loader hidden">
-    Анализируем репозиторий...
-  </div>
+<div id="loader" class="loader hidden">Загрузка...</div>
 
-  <div id="error" class="error hidden"></div>
+<div id="result" class="hidden">
 
-  <div id="result" class="card hidden">
-    <pre id="output"></pre>
-  </div>
+<div class="card">
+<h2>Описание проекта</h2>
+<div id="overview"></div>
+</div>
+
+<div class="card">
+<h2>Структура проекта</h2>
+<pre id="tree"></pre>
+</div>
+
+<div class="card">
+<h2>README</h2>
+<pre id="readme"></pre>
+</div>
+
+</div>
+
 </div>
 
 <script>
-const analyzeBtn = document.getElementById('analyzeBtn');
-const repoInput = document.getElementById('repoInput');
-const loader = document.getElementById('loader');
-const errorBox = document.getElementById('error');
-const result = document.getElementById('result');
-const output = document.getElementById('output');
+const form = document.getElementById("form");
+const loader = document.getElementById("loader");
+const result = document.getElementById("result");
 
-function showError(message) {
-  errorBox.textContent = message;
-  errorBox.classList.remove('hidden');
+form.addEventListener("submit", async (e)=>{
+e.preventDefault();
+
+loader.classList.remove("hidden");
+result.classList.add("hidden");
+
+try{
+
+const url = document.getElementById("repo").value.trim();
+
+const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
+
+if(!match){
+throw new Error("Неверная ссылка GitHub");
 }
 
-function hideError() {
-  errorBox.classList.add('hidden');
+const owner = match[1];
+const repo = match[2].replace(".git","");
+
+const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
+
+if(!repoRes.ok){
+throw new Error("Репозиторий не найден");
 }
 
-function showLoader() {
-  loader.classList.remove('hidden');
+const repoData = await repoRes.json();
+
+const branch = repoData.default_branch || "main";
+
+const treeRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`);
+
+if(!treeRes.ok){
+throw new Error("Не удалось получить дерево файлов");
 }
 
-function hideLoader() {
-  loader.classList.add('hidden');
-}
+const treeData = await treeRes.json();
 
-function detectStack(files) {
-  const paths = files.map(f => f.path.toLowerCase());
+const files = treeData.tree || [];
 
-  const tech = [];
+let structure = "";
 
-  if (paths.includes('package.json')) {
-    tech.push('Node.js');
-  }
+files.slice(0,80).forEach(f=>{
+const depth = f.path.split("/").length - 1;
+const indent = "  ".repeat(depth);
+const icon = f.type === "tree" ? "📁" : "📄";
+const name = f.path.split("/").pop();
+structure += `${indent}${icon} ${name}\n`;
+});
 
-  if (paths.some(p => p.endsWith('.ts'))) {
-    tech.push('TypeScript');
-  }
+const overview = `
+Название: ${repoData.name}
 
-  if (paths.some(p => p.endsWith('.py'))) {
-    tech.push('Python');
-  }
+Описание:
+${repoData.description || "Описание отсутствует"}
 
-  if (paths.includes('wrangler.toml')) {
-    tech.push('Cloudflare Workers');
-  }
+⭐ Stars: ${repoData.stargazers_count}
+🍴 Forks: ${repoData.forks_count}
+🧠 Язык: ${repoData.language || "Не определён"}
+`;
 
-  if (paths.some(p => p.includes('supabase'))) {
-    tech.push('Supabase');
-  }
+const readme = `
+# ${repoData.name}
 
-  if (paths.some(p => p.includes('ton'))) {
-    tech.push('TON');
-  }
+${repoData.description || "Описание отсутствует"}
 
-  if (paths.some(p => p.endsWith('.sql'))) {
-    tech.push('SQL');
-  }
+## Установка
 
-  if (tech.length === 0) {
-    tech.push('Unknown Stack');
-  }
+git clone ${url}
 
-  return tech;
-}
-
-function buildTree(files) {
-  let tree = '';
-
-  files.slice(0, 80).forEach(file => {
-    const depth = file.path.split('/').length - 1;
-    const indent = '  '.repeat(depth);
-
-    if (file.type === 'tree') {
-      tree += `${indent}📁 ${file.path.split('/').pop()}\n`;
-    } else {
-      tree += `${indent}📄 ${file.path.split('/').pop()}\n`;
-    }
-  });
-
-  return tree;
-}
-
-function buildReadme(data) {
-  return `# ${data.repo}
-
-${data.description}
-
-## Стек
-${data.tech.map(t => `- ${t}`).join('\n')}
-
-## Структура
-\`\`\`text
-${data.tree}
-\`\`\`
-
-## Быстрый старт
-\`\`\`bash
-git clone ${data.url}.git
-cd ${data.repo}
+cd ${repo}
 
 npm install
-npm run dev
-\`\`\`
 
-## Архитектура
-${data.architecture}
+## Запуск
+
+npm start
 `;
+
+document.getElementById("overview").innerText = overview;
+document.getElementById("tree").innerText = structure;
+document.getElementById("readme").innerText = readme;
+
+result.classList.remove("hidden");
+
+}catch(err){
+alert(err.message);
+}finally{
+loader.classList.add("hidden");
 }
 
-analyzeBtn.addEventListener('click', async () => {
-  hideError();
-  result.classList.add('hidden');
-
-  const repoUrl = repoInput.value.trim();
-
-  if (!repoUrl) {
-    showError('Введите ссылку на GitHub репозиторий');
-    return;
-  }
-
-  const match = repoUrl.match(/github\.com\/([^/]+)\/([^/]+)/i);
-
-  if (!match) {
-    showError('Неверная ссылка GitHub');
-    return;
-  }
-
-  const owner = match[1];
-  const repo = match[2].replace('.git', '');
-
-  showLoader();
-
-  try {
-    const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
-
-    if (!repoRes.ok) {
-      throw new Error('Репозиторий не найден');
-    }
-
-    const repoData = await repoRes.json();
-
-    const branch = repoData.default_branch || 'main';
-
-    const treeRes = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`
-    );
-
-    if (!treeRes.ok) {
-      throw new Error('Не удалось получить дерево проекта');
-    }
-
-    const treeData = await treeRes.json();
-
-    const files = treeData.tree || [];
-
-    const tech = detectStack(files);
-
-    const tree = buildTree(files);
-
-    const architecture = tech.join(' → ');
-
-    const readme = buildReadme({
-      repo,
-      description:
-        repoData.description || 'Описание проекта отсутствует.',
-      tech,
-      tree,
-      architecture,
-      url: repoUrl
-    });
-
-    output.textContent = readme;
-
-    result.classList.remove('hidden');
-  }
-  catch (err) {
-    console.error(err);
-    showError(err.message || 'Неизвестная ошибка');
-  }
-  finally {
-    hideLoader();
-  }
 });
 </script>
 
